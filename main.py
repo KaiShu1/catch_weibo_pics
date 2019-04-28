@@ -67,5 +67,5 @@ class Spider:
 
 if __name__ == '__main__':
     # 初始手机端主页xhr文件地址
-    s = Spider("Angelababy")
+    s = Spider()
     s.search()
