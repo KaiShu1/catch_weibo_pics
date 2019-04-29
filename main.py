@@ -144,4 +144,4 @@ class Spider:
 
 if __name__ == '__main__':
     # 初始手机端主页xhr文件地址
-    s = Spider("韩国BJ", 2)
+    s = Spider("pdd", 2)
