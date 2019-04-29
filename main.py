@@ -9,10 +9,9 @@ Todo1: 更新主页和搜索页 多页爬取
 Todo2: 抓取gif图
 
 Done: Todo1、Todo2，可以通过设置page_count来选择多页爬取主页，对于搜索页面需要多设置一个参数 page=page_count 即可，
-      且可以抓取gif图
+      且可以抓取gif图,新增获取搜索页面视频资源
 
 Todo3: 自动获取用户的 containerid
-Todo4: 尝试获取视频资源
 '''
 
 
@@ -29,7 +28,7 @@ class Spider:
         self.home_page_url = self.get_home_page_url(original_url)
         self.since_id = ''
 
-    def home(self):
+    def hm_catch_pics(self):
         """
         catch number of home page pics by setting self.page_count
         :return: 1
@@ -76,16 +75,16 @@ class Spider:
                 sleep(1)
         return 1
 
-    def search(self):
+    def sp_catch_pics(self):
         dir_name = self.content + 'pics_s'
         try:
             mkdir(dir_name)
         except FileExistsError:
             print('file existed')
 
-        for page_count in range(1, self.page_count+1):
+        for page_count in range(1, self.page_count + 1):
             url = "https://m.weibo.cn/api/container/getIndex?containerid=100103" \
-                           "type%3D1%26q%3D" + quote(self.content) + "&page_type=searchall"
+                  "type%3D1%26q%3D" + quote(self.content) + "&page_type=searchall"
             if page_count:
                 url += "&page=%s" % page_count
             print(url)
@@ -107,8 +106,35 @@ class Spider:
                                 f.write(pic)
                         pic_num += 1
                         sleep(0.5)
-                except (KeyError, IndexError):
+                except KeyError:
                     continue
+
+    def sp_catch_media(self):
+        dir_name = self.content + '_video_s'
+        try:
+            mkdir(dir_name)
+        except FileExistsError:
+            print('file existed')
+        for page_count in range(1, self.page_count + 1):
+            url = "https://m.weibo.cn/api/container/getIndex?containerid=100103" \
+                  "type%3D1%26q%3D" + quote(self.content) + "&page_type=searchall"
+            if page_count:
+                url += "&page=%s" % page_count
+            r = get(url)
+            data = loads(r.text)
+            for card_num in range(len(data['data']['cards'][-1]['card_group'])):
+                try:
+                    media_info = data["data"]["cards"][-1]['card_group'][card_num]["mblog"]["page_info"]["media_info"]
+                except KeyError:
+                    continue
+                if media_info['mp4_720p_mp4']:
+                    media_url = media_info['mp4_720p_mp4']
+                elif media_info['mp4_hd_url']:
+                    media_url = media_info['mp4_hd_url']
+                else:
+                    media_url = media_info['mp4_sd_url']
+                with open("./%s/%s%s.mp4" % (dir_name, page_count, card_num), "wb") as f:
+                    f.write(get(media_url).content)
 
     def get_home_page_url(self, api_url):
         data = loads(get(api_url).text)
@@ -118,5 +144,4 @@ class Spider:
 
 if __name__ == '__main__':
     # 初始手机端主页xhr文件地址
-    s = Spider("pdd", 2)
-    s.search()
+    s = Spider("韩国BJ", 2)

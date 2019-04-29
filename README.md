@@ -2,8 +2,7 @@
 example: 
 ```python
 s = Spider("黄磊")
-s.home()
-s.search()
+s.sp_catch_media()
 ```
-**成功会在代码当前目录下创建两个子目录存放图片**
+**成功即在当前目录下创建视频文件夹**
 
