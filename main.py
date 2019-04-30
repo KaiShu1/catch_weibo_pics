@@ -12,7 +12,17 @@ Done: Todo1、Todo2，可以通过设置page_count来选择多页爬取主页，
       且可以抓取gif图,新增获取搜索页面视频资源
 
 Todo3: 自动获取用户的 containerid
+
+Done: Todo3，可以通过查询内容，自动获取containerid，
 '''
+
+"""
+整体思路: 
+    1.通过搜索界面固定xhr_url，替换自定义搜索内容
+    2.再通过其中json数据获取用户uid
+    3.再通过观察用户主页传来的两个xhr_url其中一个，去掉最后的containerid参数，发现没有也可以
+    4.观察其中json内容，发现tabsInfo中有需要的微博页面 containerid
+"""
 
 
 class Spider:
@@ -25,7 +35,7 @@ class Spider:
         self.page_count = page_count
         original_url = "https://m.weibo.cn/api/container/getIndex?containerid=100103" \
                        "type%3D3%26q%3D" + quote(self.content) + "&page_type=searchall"
-        self.home_page_url = self.get_home_page_url(original_url)
+        self.uid = self.get_home_page_url(original_url)[21:31]
         # 先主页也使用page作为参数了 self.since_id = ''
 
     def hm_catch_pics(self):
@@ -39,14 +49,28 @@ class Spider:
             mkdir(dir_name)
         except FileExistsError:
             print('file existed')
+
+        base_url = "https://m.weibo.cn/api/container/getIndex"
+        r = get(base_url, params={
+            'type': 3,
+            'q': quote(self.content),
+            't': 0,
+            'display': 0,
+            'retcode': 6102,
+            'type': 'uid',
+            'value': self.uid
+        })
+        # 通过主页两个xhr文件其中一个，可以不提供containerid————获取微博页面对应 containerid
+        containerid = loads(r.text)['data']['tabsInfo']['tabs'][1]['containerid']
+
         for page_count in range(self.page_count):
-            print("page:" + str(page_count+1) + "-" * 40)
+            print("page:" + str(page_count + 1) + "-" * 40)
             base_url = "https://m.weibo.cn/api/container/getIndex"
             r = get(base_url, params={'is_hot[]': '1',
                                       'jumpfrom': "weibocom",
                                       'type': 'uid',
-                                      'value': self.home_page_url[21:31],
-                                      'containerid': 1076035404464551,
+                                      'value': self.uid,
+                                      'containerid': containerid,
                                       'page': page_count + 1,
                                       })
             print(r.url)
@@ -145,5 +169,5 @@ class Spider:
 
 if __name__ == '__main__':
     # 初始手机端主页xhr文件地址
-    s = Spider("杨晨晨", 3)
-    s.hm_catch_pics()
+    s = Spider("编玩边学", 3)
+    s.sp_catch_pics()
