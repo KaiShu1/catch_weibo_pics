@@ -163,8 +163,8 @@ class Spider:
 
     def get_home_page_url(self, api_url):
         data = loads(get(api_url).text)
-        self.home_page_url = data['data']['cards'][1]['card_group'][0]['user']['profile_url']
-        return self.home_page_url
+        home_page_url = data['data']['cards'][1]['card_group'][0]['user']['profile_url']
+        return home_page_url
 
 
 if __name__ == '__main__':
