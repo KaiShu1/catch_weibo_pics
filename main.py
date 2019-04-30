@@ -161,7 +161,8 @@ class Spider:
                 with open("./%s/%s%s.mp4" % (dir_name, page_count, card_num), "wb") as f:
                     f.write(get(media_url).content)
 
-    def get_home_page_url(self, api_url):
+    @staticmethod
+    def get_home_page_url(api_url):
         data = loads(get(api_url).text)
         home_page_url = data['data']['cards'][1]['card_group'][0]['user']['profile_url']
         return home_page_url
