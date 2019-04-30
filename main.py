@@ -19,14 +19,14 @@ class Spider:
     def __init__(self, content, page_count=1):
         """
         :param content: contain the thing that you want to search
-        :param count: catch home page numbers
+        :param page_count: catch home page numbers
         """
         self.content = content
         self.page_count = page_count
         original_url = "https://m.weibo.cn/api/container/getIndex?containerid=100103" \
                        "type%3D3%26q%3D" + quote(self.content) + "&page_type=searchall"
         self.home_page_url = self.get_home_page_url(original_url)
-        self.since_id = ''
+        # 先主页也使用page作为参数了 self.since_id = ''
 
     def hm_catch_pics(self):
         """
@@ -40,17 +40,18 @@ class Spider:
         except FileExistsError:
             print('file existed')
         for page_count in range(self.page_count):
-            print("page:" + str(page_count) + "-" * 40)
+            print("page:" + str(page_count+1) + "-" * 40)
             base_url = "https://m.weibo.cn/api/container/getIndex"
             r = get(base_url, params={'is_hot[]': '1',
                                       'jumpfrom': "weibocom",
                                       'type': 'uid',
                                       'value': self.home_page_url[21:31],
                                       'containerid': 1076035404464551,
-                                      'since_id': self.since_id,
+                                      'page': page_count + 1,
                                       })
+            print(r.url)
             data = loads(r.text)
-            self.since_id = str(data["data"]["cardlistInfo"]["since_id"])
+            # 不需要了: self.since_id = str(data["data"]["cardlistInfo"]["since_id"])
             # 每个json数据中有十个card
             for card_num in range(10):
                 try:
@@ -82,11 +83,11 @@ class Spider:
         except FileExistsError:
             print('file existed')
 
-        for page_count in range(1, self.page_count + 1):
+        for page_count in range(self.page_count):
             url = "https://m.weibo.cn/api/container/getIndex?containerid=100103" \
                   "type%3D1%26q%3D" + quote(self.content) + "&page_type=searchall"
             if page_count:
-                url += "&page=%s" % page_count
+                url += "&page=%s" % (page_count + 1)
             print(url)
             r = get(url)
             data = loads(r.text)
@@ -144,4 +145,5 @@ class Spider:
 
 if __name__ == '__main__':
     # 初始手机端主页xhr文件地址
-    s = Spider("pdd", 2)
+    s = Spider("杨晨晨", 3)
+    s.hm_catch_pics()
